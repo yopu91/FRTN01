@@ -4,7 +4,7 @@ public class MainController {
 	public static void main(String[] argv) {
 		final int regulPriority = 8; 
 		
-		int port = 4444;
+		int port = Integer.parseInt(argv[0]);
 		
 		CommServer commServer = new CommServer(port);
 		
