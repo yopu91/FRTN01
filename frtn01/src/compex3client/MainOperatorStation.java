@@ -6,8 +6,8 @@ public class MainOperatorStation {
 		final int refGenPriority = 6;
 		final int plotterPriority = 7;
 		
-		String host = "localhost";
-		int port = 4444;
+		String host = argv[0];
+		int port = Integer.parseInt(argv[1]);
 		
 		CommClient commClient = new CommClient(host, port);
 		
