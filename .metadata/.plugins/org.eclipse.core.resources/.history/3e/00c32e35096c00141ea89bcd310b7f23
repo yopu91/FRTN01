@@ -1,0 +1,10 @@
+package simprocess;
+
+public class Testmain {
+	
+	
+	public static void main(String args[]){
+		String a = "ab cd ef gh";
+		String[] b = a.split(" ");
+	}
+}

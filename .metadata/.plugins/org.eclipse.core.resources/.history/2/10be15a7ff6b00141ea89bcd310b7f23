@@ -1,0 +1,10 @@
+package simprocess;
+
+public class MainSimProcess {
+	public static void main (String args[]){
+		BallAndBeam bb = new BallAndBeam();
+		CommProcess c = new CommProcess("localhost", 2000, bb);
+		c.start();
+	}
+	
+}

@@ -1,0 +1,80 @@
+package simprocess;
+
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class CommProcess implements Runnable {
+	private DataInputStream in;
+	private DataOutputStream out;
+	private int port;
+	private boolean alive;
+
+	public CommProcess() {
+
+		this.in = null;
+		this.out = null;
+		this.alive = true;
+	}
+
+
+	@Override
+	public void run() {
+		Socket socket = null;
+		try {
+			socket = new Socket();
+		} catch (IOException e) {
+			System.exit(1);
+		}
+		while (alive) {
+			Socket processSocket = null;
+			in = null;
+			synchronized (this) {
+				out = null;
+			}
+			try {
+				System.out.println("Waiting for client to connect.");
+				in = new DataInputStream(processSocket.getInputStream());
+				synchronized (this) {
+					out = new DataOutputStream(processSocket.getOutputStream());
+				}
+				System.out.println("Process connected.");
+			} catch (IOException e) {
+				System.out.println("Error: Accept failed: " + e.getMessage());
+			}
+			try {
+				String line = null;
+				while (alive && (line = in.readLine()) != null) {
+					setInputs(in.readLine());
+					// dostuff
+				}
+			} catch (IOException e) {
+				System.out.println("Error: readLine failed: " + e.getMessage());
+			}
+			if (processSocket != null) {
+				try {
+					in.close();
+					synchronized (this) {
+						out.close();
+					}
+					processSocket.close();
+				} catch (IOException e) {
+					System.out.println("Error: close: " + e.getMessage());
+				}
+			}
+			System.out.println("Client disconnected.");
+		}
+
+		try {
+			serverSocket.close();
+		} catch (IOException e) {
+			System.out
+					.println("Error: serverSocket.close(): " + e.getMessage());
+		}
+	}
+}

@@ -1,0 +1,21 @@
+package simprocess;
+
+public class Testmain {
+	
+	
+	public static void main(String args[]){
+		String a = "ab cd ef gh";
+		String[] b = a.split(" ");
+		for(int i = 0; i < 4; i++){
+			System.out.println(b[i]);
+		}
+		String c = "4.12 5.18";
+		String[] d = c.split(" ");
+		for(int i = 0; i < 2; i++){
+			System.out.println(d[i]);
+			System.out.println(Double.parseDouble(d[i]));
+		}
+		
+		double g = 4.1231;
+	}
+}

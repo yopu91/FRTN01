@@ -5,6 +5,7 @@ import se.lth.control.realtime.AnalogIn;
 import se.lth.control.realtime.AnalogOut;
 import se.lth.control.realtime.IOChannelException;
 import se.lth.control.realtime.Semaphore;
+import simprocess.BallAndBeam;
 
 public class Regul extends Thread {
 	public static final int OFF = 0;
@@ -44,6 +45,11 @@ public class Regul extends Thread {
 		}
 	}
 	
+	//bara filler
+	public Regul(){
+		
+	}
+	
 	public Regul(int pri) {
 		priority = pri;
 		mutex = new Semaphore(1);
@@ -57,6 +63,8 @@ public class Regul extends Thread {
 		}
 		modeMon = new ModeMonitor();
 	}
+	
+	
 	
 	public void setOpCom(OpComProxy opcom) {
 		this.opcom = opcom;

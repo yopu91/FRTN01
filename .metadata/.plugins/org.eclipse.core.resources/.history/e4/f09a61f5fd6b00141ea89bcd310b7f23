@@ -1,0 +1,9 @@
+package simprocess;
+
+public class MainSimProcess {
+	public static void main (String args[]){
+		BallAndBeam bb = new BallAndBeam();
+		new CommProcess("localhost", 2000, bb)
+	}
+	
+}

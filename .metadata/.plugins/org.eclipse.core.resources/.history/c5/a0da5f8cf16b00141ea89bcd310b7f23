@@ -1,0 +1,116 @@
+package compex3server;
+
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+public class TestServerToProcess implements Runnable {
+	private ServerSocket serversocket;
+	private BufferedReader in;
+	private BufferedWriter out;
+	private TestRegul regul;
+	private int port;
+	private boolean alive;
+	private double angle;
+	private double position;
+
+	public TestServerToProcess(TestRegul regul, int port) {
+		this.regul = regul;
+		this.port = port;
+
+		this.in = null;
+		this.out = null;
+		this.alive = true;
+	}
+
+	private synchronized void write(String message) {
+		try {
+			out.write(message + "\n");
+			out.flush();
+		} catch (IOException e) {
+			System.out.println("IOException: " + e.getMessage());
+			e.printStackTrace();
+		}
+	}
+
+	public void shutDown() {
+		write("0");
+	}
+	public double getAngle(){
+		return angle;
+	}
+	public double getPosition(){
+		return position;
+	}
+	
+	private void setInputs(String inputs){
+		String[] temp;
+		temp = inputs.split(" ");
+		this.angle = Double.parseDouble(temp[0]);
+		this.position = Double.parseDouble(temp[1]);
+	}
+
+	@Override
+	public void run() {
+		ServerSocket serverSocket = null;
+		try {
+			serverSocket = new ServerSocket(port);
+			System.out.println("Listening to port: " + port);
+		} catch (IOException e) {
+			System.out.println("Error: Could not listen on port: " + port);
+			System.exit(1);
+		}
+		while (alive) {
+			Socket processSocket = null;
+			in = null;
+			synchronized (this) {
+				out = null;
+			}
+			try {
+				System.out.println("Waiting for client to connect.");
+				processSocket = serverSocket.accept();
+				in = new BufferedReader(new InputStreamReader(
+						processSocket.getInputStream()));
+				synchronized (this) {
+					out = new BufferedWriter(new OutputStreamWriter(
+							processSocket.getOutputStream()));
+				}
+				System.out.println("Process connected.");
+			} catch (IOException e) {
+				System.out.println("Error: Accept failed: " + e.getMessage());
+			}
+			try {
+				String line = null;
+				while (alive && (line = in.readLine()) != null) {
+					setInputs(in.readLine());
+					// dostuff
+				}
+			} catch (IOException e) {
+				System.out.println("Error: readLine failed: " + e.getMessage());
+			}
+			if (processSocket != null) {
+				try {
+					in.close();
+					synchronized (this) {
+						out.close();
+					}
+					processSocket.close();
+				} catch (IOException e) {
+					System.out.println("Error: close: " + e.getMessage());
+				}
+			}
+			System.out.println("Client disconnected.");
+		}
+
+		try {
+			serverSocket.close();
+		} catch (IOException e) {
+			System.out
+					.println("Error: serverSocket.close(): " + e.getMessage());
+		}
+	}
+}

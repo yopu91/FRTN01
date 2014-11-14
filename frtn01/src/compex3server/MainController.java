@@ -8,8 +8,23 @@ public class MainController {
 		
 		CommServer commServer = new CommServer(port);
 		
-		ReferenceGeneratorProxy refgen = new ReferenceGeneratorProxy(commServer); 
-		Regul regul = new Regul(regulPriority); 
+		ReferenceGeneratorProxy refgen = new ReferenceGeneratorProxy(commServer);
+		
+		
+		
+//		Regul regul = new Regul(regulPriority);
+		
+		
+		// Sim tests
+		int testPort = Integer.parseInt(argv[1]);
+		TestRegul regul = new TestRegul(regulPriority);
+		TestServerToProcess process = new TestServerToProcess(regul, testPort);
+		regul.setProcess(process);
+		Thread p = new Thread(process);
+		p.start();
+		
+		
+		
 		OpComProxy opcom = new OpComProxy(commServer); 
 		
 		commServer.setRegul(regul);

@@ -1,0 +1,5 @@
+package simprocess;
+
+public class Testmain {
+	String a = "ab cd ef gh";
+}
