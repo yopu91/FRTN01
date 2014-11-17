@@ -37,7 +37,7 @@ static inline void put_char(char ch){
 }
 
 /**
- * Write 10-bit output using the PWM generator
+ * Write 10-bit output using the PWM generator.
  */
 static inline void writeOutput(int16_t val){
     val   += 512;
