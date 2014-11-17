@@ -7,7 +7,8 @@ public class MainOperatorStation {
 		final int plotterPriority = 7;
 		
 		String host = argv[0];
-		int port = Integer.parseInt(argv[1]);
+		//int port = Integer.parseInt(argv[1]);
+		int port = 3010;
 		
 		CommClient commClient = new CommClient(host, port);
 		

@@ -147,6 +147,7 @@ public class CommServer implements Runnable {
 			
 			try {
 				String line = null;
+				out.write("hej");
 				while (alive && (line = in.readLine()) != null) {
 					DebugPrint("Command received: \"" + line + "\"");
 					// Commands
