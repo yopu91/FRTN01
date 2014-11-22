@@ -17,16 +17,22 @@
  * To open a serial terminal on the PC:
  * simcom -38400 /dev/ttyS0 
  */
-
 #include <avr/io.h>
 #include <avr/interrupt.h>
 
-/* Controller parameters and variables (add your own code here) */
+#define angular_read  1
+#define ball_pos_read 0
+#define true          1
+#define false         0
 
+/* Variables */
 int8_t  on = 0;                     /* 0=off, 1=on */
 int16_t r  = 255;                   /* Reference, corresponds to +5.0 V */
-int16_t u  = 0;
-int16_t y  = 0;
+int16_t angle_write = 0;
+int16_t angle_read  = 0;
+int16_t ball_read   = 0;
+int16_t buffer[8]   = {0};
+uint8_t bias        = 0;
 
 /** 
  * Write a character on the serial connection
@@ -64,26 +70,34 @@ static inline int16_t readInput(char chan){
 /**
  * Interrupt handler for receiving characters over serial connection
  */
-ISR(USART_RXC_vect){ 
+ISR(USART_RXC_vect){
+    if(angle_input){
+        if(UDR == '.'){
+            bias = 0;
+            writeOutput((int16_t)atoi(buffer));
+        }else{     
+            buffer[bias++] = UDR;
+        }
+    } 
     switch (UDR){
         case 's':                        /* Start the controller */
-            put_char('s');
             on = 1;
             break;
         case 't':                        /* Stop the controller */
-            put_char('t');
             on = 0;
+            writeOutput(0);              /* Off */
             break;
         case 'r':                        /* Change sign of reference */
-        put_char('r');
-        r = -r;
-        break;
+            r = -r;
+            break;
+        case 'a':                        /* Reads angular input from rasp */
+            angle_input = true;          /* State start to read angular input from rasp */   
     }
 }
 
 /**
  * Interrupt handler for the periodic timer. Interrupts are generated
- * every 10 ms. The control algorithm is executed every 50 ms.
+ * every 10 ms.
  */
 ISR(TIMER2_COMP_vect){
 
@@ -92,10 +106,10 @@ ISR(TIMER2_COMP_vect){
     if (++ctr < 5) return;
     ctr = 0;
     if (on){
-        y = readInput(1); 
-        writeOutput(u);
-    }else{                     
-        writeOutput(0);     /* Off */
+        angle_read = readInput(angular_read);
+        ball_read  = readInput(ball_pos_read);
+        //int_16 to string write stdout to rasp
+        
     }
 }
 
