@@ -1,9 +1,9 @@
 package compex3server;
 
 public class ReferenceGeneratorProxy {
-	private CommServer commServer;
+	private CommServerClient commServer;
 	
-	public ReferenceGeneratorProxy(CommServer commServer) {
+	public ReferenceGeneratorProxy(CommServerClient commServer) {
 		this.commServer = commServer;
 	}
 	

@@ -14,9 +14,10 @@ public class Regul extends Thread {
 	private PI inner = new PI("PI");
 	private PID outer = new PID("PID");
 	
-	private AnalogIn analogInAngle; 
-	private AnalogIn analogInPosition; 
-	private AnalogOut analogOut;
+//	private AnalogIn analogInAngle; 
+//	private AnalogIn analogInPosition; 
+//	private AnalogOut analogOut;
+	private CommServerProcess process;
 	
 	private ReferenceGeneratorProxy referenceGenerator;
 	private OpComProxy opcom;
@@ -47,15 +48,11 @@ public class Regul extends Thread {
 	public Regul(int pri) {
 		priority = pri;
 		mutex = new Semaphore(1);
-		try {
-			analogInAngle = new AnalogIn(0);
-			analogInPosition = new AnalogIn(1);
-			analogOut = new AnalogOut(0);
-		} catch (IOChannelException e) { 
-			System.out.print("Error: IOChannelException: ");
-			System.out.println(e.getMessage());
-		}
 		modeMon = new ModeMonitor();
+	}
+	
+	public void setProcess(CommServerProcess process){
+		this.process = process;
 	}
 	
 	public void setOpCom(OpComProxy opcom) {
@@ -111,10 +108,11 @@ public class Regul extends Thread {
 	public synchronized void shutDown() {
 		WeShouldRun = false;
 		mutex.take();
-		try {
-			analogOut.set(0.0);
-		} catch (IOChannelException x) {
-		}
+		process.shutDown();
+	}
+	
+	private double limit(double v) {
+		return limit(v, -10, 10);
 	}
 	
 	private double limit(double v, double min, double max) {
@@ -134,80 +132,44 @@ public class Regul extends Thread {
 		setPriority(priority);
 		mutex.take();
 		while (WeShouldRun) {
+			double u = 0.0;
+			double y = 0.0;
+			double yRef = 0.0;
+			
 			switch (modeMon.getMode()) {
 			case OFF: {
-				// Code for the OFF mode. 
-				// Written by you.
-				// Should include resetting the controllers
-				sendDataToOpCom(0, 0, 0);
-				inner.reset();
-				outer.reset();
-				
-				// Should include a call to sendDataToOpCom  
+				setOut(u);
 				break;
 			}
 			case BEAM: {
-				// Code for the BEAM mode
-				// Written by you.
-				// Should include a call to sendDataToOpCom
-				double yBeam = 0;
-				double ref = referenceGenerator.getRef();
-				synchronized (inner){
-				try {
-					yBeam = analogInAngle.get();
-				} catch (IOChannelException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+				yRef = referenceGenerator.getRef();
+				synchronized (inner) {
+					y = process.getAngle();
+					u = limit(inner.calculateOutput(y, yRef));
+					setOut(u);
+					inner.updateState(u);
 				}
-				double u = limit(inner.calculateOutput(yBeam, ref), -10.0, 10.0);
-				try {
-					analogOut.set(u);
-				} catch (IOChannelException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				inner.updateState(u);
-				sendDataToOpCom(ref, yBeam, u);
-				}
-				
 				break;
 			}
 			case BALL: {
-				// Code for the BALL mode
-				// Written by you.
-				// Should include a call to sendDataToOpCom
-				double yBeam = 0;
-				double yBall = 0;
-				double ref = referenceGenerator.getRef();
-				synchronized (outer){
-					try {
-						yBall = analogInPosition.get();
-					} catch (IOChannelException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					double angRef = outer.calculateOutput(yBall, ref);
+				yRef = referenceGenerator.getRef();
+				synchronized (outer) {
+					y = process.getPosition();
+					double angleRef = outer.calculateOutput(y, yRef);
+					double angleRefSat = limit(angleRef);
+					double angle;
 					synchronized (inner) {
-						try {
-							yBeam = analogInAngle.get();
-						} catch (IOChannelException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						double u = inner.calculateOutput(yBeam, angRef);
-						try {
-							analogOut.set(u);
-						} catch (IOChannelException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
+						angle = process.getAngle();
+						u = limit(inner.calculateOutput(angle, angleRefSat));
+						setOut(u);
 						inner.updateState(u);
-						sendDataToOpCom(ref, yBall, u);
 					}
-					outer.updateState(angRef);
-					
+					if (angleRef == angleRefSat) {
+						outer.updateState(angleRef);
+					} else {
+						outer.updateState(angle);
+					}
 				}
-				
 				break;
 			}
 			default: {
@@ -215,6 +177,8 @@ public class Regul extends Thread {
 				break;
 			}
 			}
+			
+			sendDataToOpCom(yRef, y, u);
 			
 			// sleep
 			t = t + inner.getHMillis();
@@ -227,5 +191,10 @@ public class Regul extends Thread {
 			}
 		}
 		mutex.give();
+	}
+	
+	
+	private void setOut(double u) {
+		process.setOutput(u);
 	}
 }

@@ -3,9 +3,9 @@ package compex3server;
 import se.lth.control.DoublePoint;
 
 public class OpComProxy {
-	private CommServer commServer;
+	private CommServerClient commServer;
 	
-	public OpComProxy(CommServer commServer) {
+	public OpComProxy(CommServerClient commServer) {
 		this.commServer = commServer;
 	}
 	

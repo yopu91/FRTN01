@@ -6,7 +6,7 @@ public class MainController {
 		
 		int port = Integer.parseInt(argv[0]);
 		
-		CommServer commServer = new CommServer(port);
+		CommServerClient commServer = new CommServerClient(port);
 		
 		ReferenceGeneratorProxy refgen = new ReferenceGeneratorProxy(commServer); 
 		Regul regul = new Regul(regulPriority); 

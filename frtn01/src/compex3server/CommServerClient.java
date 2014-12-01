@@ -13,7 +13,7 @@ import java.io.InputStreamReader;
 import se.lth.control.DoublePoint;
 
 
-public class CommServer implements Runnable {
+public class CommServerClient implements Runnable {
 	private final String cmdGetInnerParameters = "GetInnerParameters";
 	private final String cmdSetInnerParameters = "SetInnerParameters";
 	private final String cmdGetOuterParameters = "GetOuterParameters";
@@ -36,7 +36,7 @@ public class CommServer implements Runnable {
 	private BufferedWriter out;
 	private List<String> replies;
 	
-	public CommServer(int port) {
+	public CommServerClient(int port) {
 		this.regul = null;
 		
 		this.alive = true;
